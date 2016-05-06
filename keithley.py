@@ -2,32 +2,15 @@ import visa
 
 class Keithley:
     
-    def __init__(self):
+    def __init__(self, func):
         self.rm = visa.ResourceManager()
-        #print(rm.list_resources())
-        self.interval_in_ms = 5
-        self.number_of_readings = 10
-        self.func = "Resistance"
-        self.average = 0
-        #Setup time interval and number of readings
-
         #Depending on instrument GPIB address
         self.keithley = self.rm.open_resource('GPIB::16')
         #For K2000, GPIB address is 16
-        #Execute something with Keithley
+        #Reset K2000
         self.keithley.write("*rst; status:preset; *cls") #Reset K2000
-        #self.keithley.write("syst:beep") #Make K2000 beep
-
-    
-    def __str__(self):
-        return "initialized"
-
-    
-
-
-    def measureOnce(self):
-
-        self.keithley.write("configure:%s" % self.func) 
+        #set mode
+        self.keithley.write("configure:%s" % func) 
         self.keithley.write("status:measurement:enable 512; *sre 1")
         self.keithley.write("trigger:source bus")
         self.keithley.write("trace:feed sense1; feed:control next")
@@ -35,11 +18,23 @@ class Keithley:
         self.keithley.write("initiate")
         self.keithley.assert_trigger()
         self.keithley.wait_for_srq()
+
+
+    def __str__(self):
+        return "initialized"
+
+
+    def measureOnce(self):
+
         #Request data from K2000
-        self.result = self.keithley.query_ascii_values("data?")
+        result=[0.0]
+        raw= self.keithley.query_ascii_values("trace:data?")
         #Reset Keithley
         self.keithley.query("status:measurement?")
         self.keithley.write("trace:clear; feed:control next")
+        for i in raw:
+            result.append(double(i))
+        return result
  
     def measurement(self):
         
