@@ -23,22 +23,28 @@ T1=Konstant
 
 def measureNext():
     
-    global values_x, values_y
+    global values_x, values_y, result
     values_y=[]
     values_x=[]
+    result=[]
     i=float(entry_interval.get())
     n=int(entry_number.get())
     t=0
 
-    while t <= i*n :
-        time.sleep(i/1000)
-        result = measureMethod2()
-        values_y.append(double(result))
-        values_x.append(t)
-        #print(t)#frame.after(i,measureNext(t+i))
+    if func == '':
+        listbox_l.insert('end',"Please select measurement mode.")
         
-        listbox_l.insert('end', result)
-        t+=i
+    else:
+        keith=Keithley(func)
+        
+        while t <= i*n :
+            time.sleep(i/1000)
+            result=keith.mesasureOnce()
+            values_y.append(result[0])
+            values_x.append(t)
+            
+            listbox_l.insert('end', result)
+            t+=i
 
     min_v = min(values_y)
     max_v = max(values_y)
@@ -111,31 +117,6 @@ def measureMethod():
         listbox_l.insert('end', func+" measurement is completed.")
 
     listbox_l.see(END)
-
-def measureMethod2():
-
-    global result
-
-    if func == '':
-        listbox_l.insert('end',"Please select measurement mode.")
-        
-    else:
-        keith=Keithley()
-        #set inteval and number if input is digit 
-        if entry_interval.get().isdigit():
-            keith.interval_in_ms = 1
-
-        if entry_number.get().isdigit():
-            keith.number_of_recordigns = 1
-
-        keith.func=func
-        #self.outputField.delete(0, 200)
-        keith.measurement()
-        
-        result = keith.result[0]
-        r=result
-        return r
-
 
 def saveMethod():
 
