@@ -11,29 +11,29 @@ class Keithley:
         self.keithley.write("*rst; status:preset; *cls") #Reset K2000
         #set mode
         self.keithley.write("configure:%s" % func) 
-        self.keithley.write("status:measurement:enable 512; *sre 1")
-        self.keithley.write("trigger:source bus")
-        self.keithley.write("trace:feed sense1; feed:control next")
+        #self.keithley.write("status:measurement:enable 512; *sre 1")
+        #self.keithley.write("trigger:source bus")
+        #self.keithley.write("trace:feed sense1; feed:control next")
         #Prepare K2000 for trigger
-        self.keithley.write("initiate")
-        self.keithley.assert_trigger()
-        self.keithley.wait_for_srq()
 
-
+        print("initialized")
     def __str__(self):
         return "initialized"
 
 
     def measureOnce(self):
-
+        self.keithley.write("initiate")
+        #self.keithley.assert_trigger()
+        #self.keithley.wait_for_srq()
         #Request data from K2000
         result=[0.0]
-        raw= self.keithley.query_ascii_values("trace:data?")
+        #raw= self.keithley.query_ascii_values("trace:data?")
+        raw= self.keithley.query_ascii_values("READ?")
         #Reset Keithley
-        self.keithley.query("status:measurement?")
-        self.keithley.write("trace:clear; feed:control next")
+        #self.keithley.query("status:measurement?")
+        #self.keithley.write("trace:clear; feed:control next")
         for i in raw:
-            result.append(double(i))
+            result.append(float(i))
         return result
  
     def measurement(self):
@@ -45,9 +45,9 @@ class Keithley:
         self.keithley.write("sample:count %d" % self.number_of_readings)
         #self.keithley.write("sample:count 1")
         self.keithley.write("trigger:source bus")
-        self.keithley.write("trigger:delay %f" % (self.interval_in_ms / 1000.0))
+        #self.keithley.write("trigger:delay %f" % (self.interval_in_ms / 1000.0))
         #self.keithley.write("trigger:delay 10")
-        self.keithley.write("trace:points %d" % self.number_of_readings)
+        #self.keithley.write("trace:points %d" % self.number_of_readings)
         self.keithley.write("trace:feed sense1; feed:control next")
         #Prepare K2000 for trigger
         self.keithley.write("initiate")
