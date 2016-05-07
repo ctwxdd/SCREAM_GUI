@@ -1,5 +1,5 @@
 import visa
-
+import time
 class lockinAmp():
     
     v_max = +12
@@ -11,12 +11,13 @@ class lockinAmp():
         #Depending on instrument GPIB address
         self.sr = self.rm.open_resource('GPIB::10') #SR7265 GPIB address 10
         #Execute something with SR7265
-        print(self.sr.query("ID"))
+        #print(self.sr.query("ID"))
         self.amplitude = 1.5
         self.frequency = 2000
 
         self.amp_set = self.amplitude*1000000 #conversion based on original setting
         self.freq_set = self.frequency*1000 #conversion based on original setting
+
         self.sr.write("OA %d" %self.amp_set)
         self.sr.write("OF %d" %self.freq_set)
 
@@ -53,25 +54,38 @@ class lockinAmp():
 #       self.sr.write("ACGAIN1")
         print("ACGAIN1")
 
-    #DAC output (Digital to Analog Converter)
+
     def dacOutput(self, vol):
 
-        dac_amplitude = vol #DAC output DC voltage from -12V to 12V
-        dac_step = 0.1 #DAC output step in volts
-        dac_amp_set = dac_amplitude*1000 #conversion based on original setting
-        dac_step_set = dac_step*1000 #conversion based on original setting
-        dac_i = 0 #sweep from zero
+            dac_amp_set = vol*1000
+            t0=time.time()*1000
+            self.sr.write("DAC1 %d" %dac_amp_set)
 
-        while dac_i <= dac_amp_set:
-            self.sr.write("DAC1 %d" %dac_i)
-            dac_i+=dac_step_set
+
+    #DAC output (Digital to Analog Converter)
+    def dacRampTo(self, vol):
+
         #print(type(vol))
         if (vol <=12 and vol >= -12) :
+
             H_e=vol*float(56.953)
             H_c=vol*float(23.833)
-        #print("The magnetic fild at Edge is %.2lf (Oe)." %H_e)
-        #print("The magnetic fild at cenber is %.2lf (Oe)" %H_c)
+            dac_amplitude = vol #DAC output DC voltage from -12V to 12V
+            dac_step = 0.1 * vol/abs(vol) #DAC output step in volts
+            dac_step_set = dac_step*1000
+            dac_amp_set = dac_amplitude*1000 #conversion based on original setting
+            dac_i = 0 #sweep from zero
 
+            t0=time.time()*1000
+
+            while abs(dac_i) <= abs(dac_amp_set):
+
+                self.sr.write("DAC1 %d" %dac_i)
+                dac_i+=dac_step_set
+
+            print ("%.2f" %float(time.time()*1000-t0))
+            #print("The magnetic fild at Edge is %.2lf (Oe)." %H_e)
+            #print("The magnetic fild at cenber is %.2lf (Oe)" %H_c)
             msg = "DAC output has been set to "+str(vol)+"(V)."
             return msg
         else:
