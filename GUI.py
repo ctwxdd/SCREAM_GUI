@@ -1,82 +1,94 @@
 from tkinter import *
 from tkinter import ttk
 import tkinter 
+from tkinter import filedialog
+import matplotlib
+matplotlib.use("TkAgg")
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 import pylab
 from pylab import *
 import os
-from tkinter import filedialog
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
-import matplotlib
 import math
 import numpy
-from keithley import Keithley
+from keithley2 import Keithley
 from LockinAmp import lockinAmp
 import time
 
-Ta=0.01
-fa=1.0/Ta
-fcos=3.5
+root = Tk()
 
-Konstant=cos(2*pi*fcos*Ta)
-T0=1.0
-T1=Konstant
+
 
 def measureNext():
     
     global values_x, values_y, result
+
     values_y=[]
     values_x=[]
     result=[]
     i=float(entry_interval.get())
     n=int(entry_number.get())
     t=0
+    
+
+    ax.clear()
+    ax.grid(True)
+    ax.set_title("Realtime Waveform Plot")
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Amplitude")
+    ax.axis([0, i*n, -10, 10])
+
+
+
 
     if func == '':
         listbox_l.insert('end',"Please select measurement mode.")
         
     else:
+
         keith=Keithley(func)
+        #ramp
+        amp = lockinAmp()
+        step = double(entry_output.get())/n
+        a=0.0
+
+        #t0=time.time()*1000
         
         while t <= i*n :
+            #print ("%s" %time.ctime(time.time()*1000-t0))
+            #print ("%.2f" %float(time.time()*1000-t0))
+
+             
+            amp.dacOutput(a)
             time.sleep(i/1000)
-            result=keith.mesasureOnce()
-            values_y.append(result[0])
+            result=keith.measureOnce()
+            values_y.append(result[1])
             values_x.append(t)
-            
+            scat=ax.scatter(values_x[-1], values_y[-1], s=50, alpha=0.5)
+            canvas.draw()
             listbox_l.insert('end', result)
             t+=i
+            a+=step
+        
 
-    min_v = min(values_y)
-    max_v = max(values_y)
+        #scat=ax.scatter(values_x, values_y, s=50, alpha=0.5)
+        #canvas.draw()
 
-    ax.axis([0, i*n, min_v-float(min_v)/2, max_v+float(max_v)/2])
-    #
-    scat=ax.scatter(values_x, values_y, s=50, alpha=0.5)
-    canvas.draw()
-    scat.remove()
-    listbox_l.insert('end',"Finished")
+    listbox_l.insert('end',"Measurement finished")
+    listbox_l.see(END)
 
-
-#   Tnext=((Konstant*T1)*2)-T0 
-#   if len(values)%100>70:
-#     values.append(random()*2-1)
-#   else:
-#     values.append(Tnext)
-#   T0=T1
-#   T1=Tnext
-
-#   
 
 
 # def RealtimePloter():
 
-#   global values,wScale,wScale2
-#   NumberSamples=min(len(values),wScale.get())
-#   CurrentXAxis=pylab.arange(len(values)-NumberSamples,len(values),1)
-#   line1[0].set_data(CurrentXAxis,pylab.array(values[-NumberSamples:]))
-#   ax.axis([CurrentXAxis.min(),CurrentXAxis.max(),-1.5,1.5])
-#   canvas.draw()
-#   frame.after(25,RealtimePloter)
+#     global values_x, values_y
+
+#     #if len(values_x)>0:
+#    #     ax.axis(0,max(values_x),-10,10)
+#     print("test")
+#     scat=ax.scatter(values_x, values_y, s=50, alpha=0.5)
+#     canvas.draw()
+
+#     frame.after(10,RealtimePloter)
 
 
 
@@ -158,11 +170,34 @@ def outputMethod():
         listbox_l.see(END)
 
 def clearMethod():
+    ax.clear()
+    ax.grid(True)
+    ax.set_title("Realtime Waveform Plot")
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Amplitude")
+    ax.axis([0, 10, 0, 10])
+    canvas.draw()
+    listbox_l.delete(0, END)
     print("clear all")
+
+def quit():
+
+    global root
+    root.quit()
 
 #****************************************************************#
 
-root = Tk()
+
+
+
+Ta=0.01
+fa=1.0/Ta
+fcos=3.5
+values_y=[0]
+values_x=[0]
+Konstant=cos(2*pi*fcos*Ta)
+T0=1.0
+T1=Konstant
 func=''
 result=['']
 values_y=[]
@@ -178,7 +213,6 @@ ax.set_title("Realtime Waveform Plot")
 ax.set_xlabel("Time")
 ax.set_ylabel("Amplitude")
 ax.axis([0,10,0,10])
-scat=ax.scatter(0, 0, s=50, alpha=0.5)
 
 # x=numpy.linspace(0.2,10,100)
 # ax.plot(x,1/x)
@@ -218,7 +252,7 @@ entry_output = ttk.Entry(frame_setting); entry_output.insert(0,"0")
 #button_measure = ttk.Button(frame_buttomArea, text ="Measure", command = measureMethod)
 button_measure = ttk.Button(frame_buttomArea, text ="Measure", command = measureNext)
 button_save  = ttk.Button(frame_buttomArea, text="Save", command = saveMethod)
-button_cancel = ttk.Button(frame_buttomArea, text="Cancel")
+button_cancel = ttk.Button(frame_buttomArea, text="Cancel", command = quit)
 button_output = ttk.Button(frame_buttomArea, text="Output", command = outputMethod)
 button_clear = ttk.Button(frame_buttomArea, text="Clear", command = clearMethod)
 
@@ -277,5 +311,6 @@ content.columnconfigure(4, weight=1)
 content.rowconfigure(1, weight=1)
 
 # frame.after(100,SinwaveformGenerator)
-# frame.after(100,RealtimePloter)
+#frame.after(100,RealtimePloter)
 root.mainloop()
+

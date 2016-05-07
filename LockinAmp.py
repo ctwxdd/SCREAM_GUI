@@ -1,4 +1,4 @@
-import visa
+#import visa
 
 class lockinAmp():
     
@@ -7,23 +7,24 @@ class lockinAmp():
 
     def __init__(self):
 
-        self.rm = visa.ResourceManager()
-        #Depending on instrument GPIB address
-        self.sr = self.rm.open_resource('GPIB::10') #SR7265 GPIB address 10
-        #Execute something with SR7265
-        print(self.sr.query("ID"))
-        self.amplitude = 1.5
-        self.frequency = 2000
+        # self.rm = visa.ResourceManager()
+        # #Depending on instrument GPIB address
+        # self.sr = self.rm.open_resource('GPIB::10') #SR7265 GPIB address 10
+        # #Execute something with SR7265
+        # print(self.sr.query("ID"))
+        # self.amplitude = 1.5
+        # self.frequency = 2000
 
-        self.amp_set = self.amplitude*1000000 #conversion based on original setting
-        self.freq_set = self.frequency*1000 #conversion based on original setting
-        self.sr.write("OA %d" %self.amp_set)
-        self.sr.write("OF %d" %self.freq_set)
+        # self.amp_set = self.amplitude*1000000 #conversion based on original setting
+        # self.freq_set = self.frequency*1000 #conversion based on original setting
+        # self.sr.write("OA %d" %self.amp_set)
+        # self.sr.write("OF %d" %self.freq_set)
 
-        self.sr.write("SEN23")
-        self.sr.write("TC10")
+        # self.sr.write("SEN23")
+        # self.sr.write("TC10")
 
-        self.sr.write("DAC1 0")
+        # self.sr.write("DAC1 0")
+        print ("intitialized")
 
 
     def __str__(self):
@@ -32,22 +33,25 @@ class lockinAmp():
 
     def ouputSignal(self, amp, freq):
     #Output signal
-        self.amplitude = amp #Oscillator output Vrms from 0 to 5V
-        self.frequency = freq #Oscillator output frequency from 0 to 250kHz
-        self.amp_set = self.amplitude*1000000 #conversion based on original setting
-        self.freq_set = self.frequency*1000 #conversion based on original setting
-        self.sr.write("OA %d" %self.amp_set)
-        self.sr.write("OF %d" %self.freq_set)
+        # self.amplitude = amp #Oscillator output Vrms from 0 to 5V
+        # self.frequency = freq #Oscillator output frequency from 0 to 250kHz
+        # self.amp_set = self.amplitude*1000000 #conversion based on original setting
+        # self.freq_set = self.frequency*1000 #conversion based on original setting
+        # self.sr.write("OA %d" %self.amp_set)
+        # self.sr.write("OF %d" %self.freq_set)
+        print ("outputSignal")
     #Sensing setting
     def sensitivity(self, mode):
         #Sensing range
-        self.sr.write("SEN%d" %mode)
-        print("SEN%d" %mode)
+        # self.sr.write("SEN%d" %mode)
+        # print("SEN%d" %mode)
+        print ("sensitivity")
 
     def timeConst(self, mode):
     #Time constant
-        self.sr.write("TC%d" %mode)
-        print("TC%d" %mode)
+       # self.sr.write("TC%d" %mode)
+        #print("TC%d" %mode)
+        print("timeConst")
     def acGain(self, mode):
     #AC Gain
 #       self.sr.write("ACGAIN1")
@@ -63,7 +67,7 @@ class lockinAmp():
         dac_i = 0 #sweep from zero
 
         while dac_i <= dac_amp_set:
-            self.sr.write("DAC1 %d" %dac_i)
+            #self.sr.write("DAC1 %d" %dac_i)
             dac_i+=dac_step_set
         #print(type(vol))
         if (vol <=12 and vol >= -12) :
